@@ -4,17 +4,15 @@
 #input="3c"
 #input="bb"
 input="gm"
-
-# setup path
 ckpt="sam-i2v_8gpu"
-save_dir_name="sam-i2v_8gpu"
+save_dir_name="davis_run1"   # 你推理用的
 
-# setup workers
-workers=64
-
-# run evaluation
+workers=16
 prediction_name="Semi_SAVTest_${ckpt}_${input}"
+
 python ../tools/sav_evaluator.py \
---gt_root /workspace/i2v/data/sav_test/Annotations_6fps \
---pred_root ./output_semi/${save_dir_name}/${prediction_name} \
---num_processes ${workers}
+  --gt_root /root/autodl-tmp/DAVIS/Annotations_obj \
+  --pred_root ./output_semi/${save_dir_name}/${prediction_name} \
+  --num_processes ${workers} \
+  --do_not_skip_first_and_last_frame
+

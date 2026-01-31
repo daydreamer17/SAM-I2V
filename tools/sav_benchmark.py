@@ -101,7 +101,7 @@ class VideoEvaluator:
 
         vid_gt_path = path.join(self.gt_root, vid_name)
         vid_pred_path = path.join(self.pred_root, vid_name)
-        all_files_and_dirs = sorted(os.listdir(vid_gt_path))
+        all_files_and_dirs = sorted([f for f in os.listdir(vid_gt_path) if not f.startswith(".")])
         to_evaluate = []
         if all(name.endswith(".png") for name in all_files_and_dirs):
             # All files are png files, dataset structure similar to DAVIS
@@ -115,7 +115,7 @@ class VideoEvaluator:
             for obj_dir in all_files_and_dirs:
                 obj_gt_path = path.join(vid_gt_path, obj_dir)
                 obj_pred_path = path.join(vid_pred_path, obj_dir)
-                frames = sorted(os.listdir(obj_gt_path))
+                frames = sorted([f for f in os.listdir(obj_gt_path) if not f.startswith(".")])
                 to_evaluate.append((frames, obj_dir, obj_gt_path, obj_pred_path))
         return to_evaluate, is_sav_format
 

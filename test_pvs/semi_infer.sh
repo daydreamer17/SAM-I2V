@@ -8,7 +8,7 @@ input="gm"
 # setup path
 ckpt="sam-i2v_8gpu"
 yaml="i2v-infer.yaml"
-save_dir_name="sam-i2v_8gpu"
+save_dir_name="davis_run1"
 
 # run inference
 python inference_Semi_SAV_mgpu.py \

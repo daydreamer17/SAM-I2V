@@ -8,9 +8,9 @@ from utils import *
 from natsort import natsorted
 import os
 
-dataset_image_path = '/workspace/i2v/data/sav_test/JPEGImages_24fps'
-dataset_anno_path = '/workspace/i2v/data/sav_test/Annotations_6fps'
-dataset_gt_path = '/workspace/i2v/data/sav_test/mask_info/'
+dataset_image_path = '/root/autodl-tmp/DAVIS/JPEGImages/480p'
+dataset_anno_path = '/root/autodl-tmp/DAVIS/Annotations/480p'
+dataset_gt_path = '/root/autodl-tmp/DAVIS/mask_info'
 
 dataset_dir = sorted(os.listdir(dataset_image_path))
 
@@ -194,35 +194,29 @@ def process_sequences(args_settings, gpu_id, seq_list):
                     save_path_png = os.path.join(instance_save_path, frame_name[idx] + '.png')
                     save_pool.submit(_save_mask, save_path_png, stacked_np[i])
 
+                # Save empty masks for frames before start_idx (where object doesn't exist yet)
+                if start_idx > 0 and len(gpu_masks) > 0:
+                    empty_mask = np.zeros_like(stacked_np[0])
+                    for idx in range(start_idx):
+                        save_path_png = os.path.join(instance_save_path, frame_name[idx] + '.png')
+                        save_pool.submit(_save_mask, save_path_png, empty_mask)
+
     save_pool.shutdown(wait=True)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument(
-        "--input",
-        required=True,
-        type=str,
-    )
-    parser.add_argument(
-        "--ckpt",
-        required=True,
-        type=str,
-    )
-    parser.add_argument(
-        "--yaml",
-        required=True,
-        type=str,
-    )
-    parser.add_argument(
-        "--save_dir_name",
-        required=True,
-        type=str,
-    )
+    parser.add_argument("--input", required=True, type=str)
+    parser.add_argument("--ckpt", required=True, type=str)
+    parser.add_argument("--yaml", required=True, type=str)
+    parser.add_argument("--save_dir_name", required=True, type=str)
     args_settings = parser.parse_args()
 
-    mp.set_start_method('spawn')
+    mp.set_start_method('spawn', force=True)
 
-    gpu_num = 8
+    import torch
+    gpu_num = torch.cuda.device_count()
+    if gpu_num <= 0:
+        raise RuntimeError("No CUDA GPUs are available (torch.cuda.device_count() == 0)")
 
     gpu_sequences = [[] for _ in range(gpu_num)]
     for idx, seq_name in enumerate(dataset_dir):
@@ -235,11 +229,7 @@ if __name__ == '__main__':
         seq_list = gpu_sequences[gpu_id]
         if not seq_list:
             continue
-
-        p = mp.Process(
-            target=process_sequences,
-            args=(args_settings, gpu_id, seq_list)
-        )
+        p = mp.Process(target=process_sequences, args=(args_settings, gpu_id, seq_list))
         p.start()
         processes.append(p)
 
@@ -247,3 +237,4 @@ if __name__ == '__main__':
         p.join()
 
     print(f"Finished SAVTest {args_settings.ckpt}_{args_settings.input}.\nSaved results in {args_settings.save_dir_name}.")
+

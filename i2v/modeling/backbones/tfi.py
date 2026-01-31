@@ -8,7 +8,7 @@ import math
 import torch
 import torch.nn as nn
 import numpy as np
-from timm.models.layers import trunc_normal_
+from timm.layers import trunc_normal_
 import torch.nn.functional as F
 from collections import OrderedDict
 from einops import rearrange, repeat
@@ -186,7 +186,7 @@ class TFI(nn.Module):
     def _init_weights(self, m):
         if hasattr(m, 'skip_init') and m.skip_init:
             return
-        from timm.models.layers import trunc_normal_
+        from timm.layers import trunc_normal_
         init_type = 'trunc_normal_'
         if isinstance(m, nn.Conv3d) or isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv1d) or isinstance(m, nn.Linear):
             if init_type == 'trunc_normal_':
